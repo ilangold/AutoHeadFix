@@ -16,26 +16,27 @@ if __name__ == '__main__':
         cageSet = AHF_CageSet()
         # set up GPIO to use BCM mode for GPIO pin numbering
         GPIO.setwarnings(False)
-        GPIO.setmode (GPIO.BCM)
-        GPIO.setup (cageSet.pistonsPin, GPIO.OUT)
-        GPIO.setup (cageSet.rewardPin, GPIO.OUT)
-        GPIO.setup (cageSet.ledPin, GPIO.OUT)
-        GPIO.setup (cageSet.tirPin, GPIO.IN)
-        GPIO.setup (cageSet.contactPin, GPIO.IN)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(cageSet.pistonsPin, GPIO.OUT)
+        GPIO.setup(cageSet.rewardPin, GPIO.OUT)
+        GPIO.setup(cageSet.ledPin, GPIO.OUT)
+        GPIO.setup(cageSet.tirPin, GPIO.IN)
+        GPIO.setup(cageSet.contactPin, GPIO.IN)
         # open TagReader
         try:
-            tagReader = AHF_TagReader (cageSet.serialPort, True)
+            tagReader = AHF_TagReader(cageSet.serialPort, True)
         except IOError:
             tagReader = None
-        htloop (cageSet, tagReader)
+        htloop(cageSet, tagReader)
 else:
-    def hardwareTester (cageSet, tagReader):
+    def hardwareTester(cageSet, tagReader):
         """
         Hardware Tester for Auto Head Fixing, allows you to verify the various hardware bits are working
         """
-        htloop (cageSet, tagReader)
+        htloop(cageSet, tagReader)
 
-def htloop (cageSet, tagReader):
+
+def htloop(cageSet, tagReader):
     """
     Presents a menu asking user to choose a bit of hardware to test, and runs the tests
 
@@ -53,13 +54,15 @@ def htloop (cageSet, tagReader):
     """
     try:
         while (True):
-            inputStr = input ('t=tagReader, r=reward solenoid, c=contact check, p=pistons solenoid, l=LED, h=sHow config, v= saVe config, q=quit:')
-            if inputStr == 't': # t for tagreader
+            inputStr = input(
+                't=tagReader, r=reward solenoid, c=contact check, p=pistons solenoid, l=LED, h=sHow config, v= saVe config, q=quit:')
+            if inputStr == 't':  # t for tagreader
                 if tagReader == None:
-                    cageSet.serialPort = input ('First, set the tag reader serial port:')
+                    cageSet.serialPort = input(
+                        'First, set the tag reader serial port:')
                     try:
-                        tagReader = AHF_TagReader (cageSet.serialPort, True)
-                        inputStr =  input ('Do you want to read a tag now?')
+                        tagReader = AHF_TagReader(cageSet.serialPort, True)
+                        inputStr = input('Do you want to read a tag now?')
                         if inputStr[0] == 'n' or inputStr[0] == "N":
                             continue
                     except IOError as anError:
@@ -78,84 +81,98 @@ def htloop (cageSet, tagReader):
                     if tagError == True:
                         print ('Serial Port Tag-Read Error\n')
                         tagReader.clearBuffer()
-                        inputStr = input ('Do you want to change the tag reader serial port (currently ' + cageSet.serialPort + ')?')
+                        inputStr = input(
+                            'Do you want to change the tag reader serial port (currently ' + cageSet.serialPort + ')?')
                         if inputStr == 'y' or inputStr == "Y":
-                            cageSet.serialPort = input ('Enter New Serial Port:')
+                            cageSet.serialPort = input(
+                                'Enter New Serial Port:')
                             # remake tagReader and open serial port
-                            tagReader = AHF_TagReader (cageSet.serialPort, True)
+                            tagReader = AHF_TagReader(cageSet.serialPort, True)
                     else:
                         print ("Tag ID =", tagID)
                         # now check Tag-In-Range pin function
-                        if (GPIO.input (cageSet.tirPin)== GPIO.LOW):
+                        if (GPIO.input(cageSet.tirPin) == GPIO.LOW):
                             print ('Tag was never registered as being "in range"')
                             tagError = True
                         else:
                             startTime = time()
-                            GPIO.wait_for_edge (cageSet.tirPin, GPIO.FALLING, timeout= 10000)
-                            if (time () > startTime + 10.0):
+                            GPIO.wait_for_edge(
+                                cageSet.tirPin, GPIO.FALLING, timeout=10000)
+                            if (time() > startTime + 10.0):
                                 print ('Tag stayed in range for over 10 seconds')
                                 tagError = True
                             else:
                                 print ('Tag no longer in range')
                                 tagError = False
                         if (tagError == True):
-                            inputStr = input ('Do you want to change the tag-in-range Pin (currently ' + str (cageSet.tirPin) + ')?')
+                            inputStr = input(
+                                'Do you want to change the tag-in-range Pin (currently ' + str(cageSet.tirPin) + ')?')
                             if inputStr[0] == 'y' or inputStr[0] == "Y":
-                                cageSet.tirPin = int (input('Enter New tag-in-range Pin:'))
-                                GPIO.setup (cageSet.tirPin, GPIO.IN)
-            elif inputStr == 'r': # r for reward solenoid
+                                cageSet.tirPin = int(
+                                    input('Enter New tag-in-range Pin:'))
+                                GPIO.setup(cageSet.tirPin, GPIO.IN)
+            elif inputStr == 'r':  # r for reward solenoid
                 print ('Reward Solenoid opening for 1 sec')
                 GPIO.output(cageSet.rewardPin, 1)
                 sleep(1.0)
                 GPIO.output(cageSet.rewardPin, 0)
-                inputStr= input('Reward Solenoid closed.\nDo you want to change the Reward Solenoid Pin (currently ' + str (cageSet.rewardPin) + ')?')
+                inputStr = input(
+                    'Reward Solenoid closed.\nDo you want to change the Reward Solenoid Pin (currently ' + str(cageSet.rewardPin) + ')?')
                 if inputStr[0] == 'y' or inputStr[0] == "Y":
-                    cageSet.rewardPin = int (input('Enter New Reward Solenoid Pin:' ))
-                    GPIO.setup (cageSet.rewardPin, GPIO.OUT, initial=GPO.LOW)
-            elif inputStr == 'c': #c for contact on head fix
-                if (GPIO.input (cageSet.contactPin)== GPIO.HIGH):
+                    cageSet.rewardPin = int(
+                        input('Enter New Reward Solenoid Pin:'))
+                    GPIO.setup(cageSet.rewardPin, GPIO.OUT, initial=GPO.LOW)
+            elif inputStr == 'c':  # c for contact on head fix
+                if (GPIO.input(cageSet.contactPin) == GPIO.HIGH):
                     print ('Contact pin already high.')
-                    err=True
+                    err = True
                 else:
-                    GPIO.wait_for_edge (cageSet.contactPin, GPIO.RISING, timeout= 10000)
-                    if (GPIO.input (cageSet.contactPin)== GPIO.LOW):
+                    GPIO.wait_for_edge(cageSet.contactPin,
+                                       GPIO.RISING, timeout=10000)
+                    if (GPIO.input(cageSet.contactPin) == GPIO.LOW):
                         print ('No Contact after 10 seconds.')
                         err = True
                     else:
                         print ('Contact Made.')
-                        GPIO.wait_for_edge (cageSet.contactPin, GPIO.FALLING, timeout= 10000)
-                        if (GPIO.input (cageSet.contactPin)== GPIO.HIGH):
+                        GPIO.wait_for_edge(
+                            cageSet.contactPin, GPIO.FALLING, timeout=10000)
+                        if (GPIO.input(cageSet.contactPin) == GPIO.HIGH):
                             print ('Contact maintained for 10 seconds.')
                             err = True
                         else:
                             print ('Contact Broken')
                             err = False
                 if err == True:
-                    inputStr= input ('Do you want to change the Head Contact Pin (currently ' + str (cageSet.contactPin) + ')?')
+                    inputStr = input(
+                        'Do you want to change the Head Contact Pin (currently ' + str(cageSet.contactPin) + ')?')
                     if inputStr[0] == 'y' or inputStr[0] == "Y":
-                        cageSet.contactPin = int (input('Enter New Head Contact Pin:'))
-                        GPIO.setup (cageSet.contactPin, GPIO.IN)
-            elif inputStr == 'p': # p for pistons
+                        cageSet.contactPin = int(
+                            input('Enter New Head Contact Pin:'))
+                        GPIO.setup(cageSet.contactPin, GPIO.IN)
+            elif inputStr == 'p':  # p for pistons
                 print ('Pistons Solenoid energizing for 2 sec')
                 GPIO.output(cageSet.pistonsPin, 1)
-                sleep (2)
+                sleep(2)
                 GPIO.output(cageSet.pistonsPin, 0)
-                inputStr=input ('Pistons Solenoid de-energized.\nDo you want to change the Pistons Solenoid Pin (currently ' + str(cageSet.pistonsPin) + ')?')
+                inputStr = input(
+                    'Pistons Solenoid de-energized.\nDo you want to change the Pistons Solenoid Pin (currently ' + str(cageSet.pistonsPin) + ')?')
                 if inputStr[0] == 'y' or inputStr[0] == "Y":
-                    cageSet.pistonsPin = int (input('Enter New Pistons Solenoid Pin:'))
-                    GPIO.setup (cageSet.pistonsPin, GPIO.OUT)
-            elif inputStr == 'l': # l for LED trigger
+                    cageSet.pistonsPin = int(
+                        input('Enter New Pistons Solenoid Pin:'))
+                    GPIO.setup(cageSet.pistonsPin, GPIO.OUT)
+            elif inputStr == 'l':  # l for LED trigger
                 print ('LED turning ON for 2 seconds.')
                 GPIO.output(cageSet.ledPin, 1)
-                sleep (2)
+                sleep(2)
                 GPIO.output(cageSet.ledPin, 0)
-                inputStr=input ('LED turned OFF\nDo you want to change the LED Pin (currently ' + str(cageSet.ledPin) + ')?')
+                inputStr = input(
+                    'LED turned OFF\nDo you want to change the LED Pin (currently ' + str(cageSet.ledPin) + ')?')
                 if inputStr == 'y' or inputStr == "Y":
-                    cageSet.ledPin = int (input('Enter New LED Pin:'))
-                    GPIO.setup (cageSet.ledPin, GPIO.OUT, initial = GPIO.LOW)
+                    cageSet.ledPin = int(input('Enter New LED Pin:'))
+                    GPIO.setup(cageSet.ledPin, GPIO.OUT, initial=GPIO.LOW)
             elif inputStr == 'h':
                 cageSet.show()
-            elif inputStr=='v':
+            elif inputStr == 'v':
                 cageSet.save()
             elif inputStr == 'q':
                 break
@@ -163,7 +180,7 @@ def htloop (cageSet, tagReader):
         print ("quitting.")
     finally:
         if __name__ == '__main__':
-            GPIO.cleanup() # this ensures a clean exit
+            GPIO.cleanup()  # this ensures a clean exit
 
 if __name__ == '__main__':
     hardwareTester()

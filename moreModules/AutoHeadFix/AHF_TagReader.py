@@ -3,11 +3,13 @@
 
 import serial
 
+
 class AHF_TagReader:
     """
     Class to read values from a Innovations RFID tag reader, such as ID-20LA
     """
-    def __init__(self, serialPort, doChecksum = False):
+
+    def __init__(self, serialPort, doChecksum=False):
         """
         Makes a new AHF_TagReader object
         :param serialPort: serial port tag reader is attached to, /dev/ttyUSB0 or /dev/ttyAMA0 for instance
@@ -16,9 +18,9 @@ class AHF_TagReader:
         # initialize serial port
         self.serialPort = None
         try:
-            self.serialPort = serial.Serial(str (serialPort), baudrate=9600)
+            self.serialPort = serial.Serial(str(serialPort), baudrate=9600)
         except IOError as anError:
-            print ("Error initializing TagReader serial port.." + str (anError))
+            print ("Error initializing TagReader serial port.." + str(anError))
             raise anError
         if (self.serialPort.isOpen() == False):
             self.serialPort.open()
@@ -26,14 +28,13 @@ class AHF_TagReader:
         # set boolean for doing checksum on each read
         self.doCheckSum = bool(doChecksum)
 
-
-    def clearBuffer (self):
+    def clearBuffer(self):
         """
         Clears the serial buffer for the serialport used by the tagReader
         """
         self.serialPort.flushInput()
 
-    def readTag (self):
+    def readTag(self):
         """
         Reads a hexidecimal RFID tag from the serial port using a blocking read and returns the decimal equivalent
 
@@ -55,21 +56,21 @@ class AHF_TagReader:
         try:
             decVal = int(serialTag, 16)
         except ValueError as anError:
-            print ("TagReader Error converting tag to integer: " + str (serialTag) + ': ' + str (anError))
+            print ("TagReader Error converting tag to integer: " +
+                   str(serialTag) + ': ' + str(anError))
             self.serialPort.flushInput()
             raise ValueError
         else:
             if self.doCheckSum == True:
-                if self.checkSum(serialTag, serialCheckSum)== True:
+                if self.checkSum(serialTag, serialCheckSum) == True:
                     return decVal
                 else:
-                    print ("TagReader checksum error: " + str (serialTag) + ': ' + str (serialCheckSum))
+                    print ("TagReader checksum error: " +
+                           str(serialTag) + ': ' + str(serialCheckSum))
                     self.serialPort.flushInput()
                     raise ValueError
             else:
                 return decVal
-
-
 
     def checkSum(self, tag, checkSum):
         """
@@ -81,8 +82,8 @@ class AHF_TagReader:
         """
         checkedVal = 0
         try:
-            for i in range(0,5):
-                checkedVal = checkedVal ^ int(tag [(2 * i) : (2 * (i + 1))], 16)
+            for i in range(0, 5):
+                checkedVal = checkedVal ^ int(tag[(2 * i): (2 * (i + 1))], 16)
             if checkedVal == int(checkSum, 16):
                 return True
             else:
@@ -90,23 +91,20 @@ class AHF_TagReader:
         except Exception:
             return False
 
-
     def __del__(self):
         if self.serialPort is not None:
             self.serialPort.close()
 
 
 if __name__ == '__main__':
-    
+
     serialPort = '/dev/ttyUSB0'
     doCheckSum = True
-    nReads =3
+    nReads = 3
     try:
-        tagReader = AHF_TagReader (serialPort, doCheckSum)
-        for i in range (0,nReads):
-           print (tagReader.readTag ())
-        print ('Read ' + str (nReads) + ' tags')
+        tagReader = AHF_TagReader(serialPort, doCheckSum)
+        for i in range(0, nReads):
+            print (tagReader.readTag())
+        print ('Read ' + str(nReads) + ' tags')
     except Exception:
         print ('Tag reader not found, check port ' + serialPort)
-
-    

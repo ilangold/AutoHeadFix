@@ -14,8 +14,8 @@ if __name__ == '__main__':
         and sets up GPIO. After setting up, valveControl runs in a loop with options 1 to open, 0 to close, q to quit the program
         """
         cageSet = AHF_CageSet()
-        GPIO.setmode (GPIO.BCM)
-        GPIO.setup (cageSet.rewardPin, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(cageSet.rewardPin, GPIO.OUT, initial=GPIO.LOW)
         runLoop(cageSet)
 else:
     def valveControl(cageSet):
@@ -31,6 +31,7 @@ else:
         """
         runLoop(cageSet)
 
+
 def runLoop(cageSet):
     """
     main loop asks user to open or close solenoid; Opens on 1, closes on 0, quits on q
@@ -45,8 +46,8 @@ def runLoop(cageSet):
                 print ("valve is open")
                 GPIO.output(cageSet.rewardPin, 1)
             elif s == '0':
-                 print ("valve is closed")
-                 GPIO.output(cageSet.rewardPin, 0)
+                print ("valve is closed")
+                GPIO.output(cageSet.rewardPin, 0)
             elif s == 'q':
                 print ("AHF_ValveControl quitting")
                 break
@@ -57,9 +58,9 @@ def runLoop(cageSet):
         return
     finally:
         if __name__ == '__main__':
-            GPIO.cleanup() # this ensures a clean exit
+            GPIO.cleanup()  # this ensures a clean exit
             print ('cleanup')
 
 
 if __name__ == '__main__':
-    valveControl ()
+    valveControl()
